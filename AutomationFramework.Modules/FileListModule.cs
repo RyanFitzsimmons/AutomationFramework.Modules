@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
-    public class FileListModule<TDataLayer, TResult> : Module<TDataLayer, TResult> 
-        where TDataLayer : IModuleDataLayer
+    public class FileListModule<TId, TDataLayer, TResult> : Module<TId, TDataLayer, TResult> 
+        where TDataLayer : IModuleDataLayer<TId>
         where TResult : FileListModuleResult
     {
         public override string Name { get; set; } = "File List";

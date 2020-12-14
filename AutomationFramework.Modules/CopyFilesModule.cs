@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
-    public class CopyFilesModule<TDataLayer, TResult> : Module<TDataLayer, TResult> 
-        where TDataLayer : IModuleDataLayer
+    public class CopyFilesModule<TId, TDataLayer, TResult> : Module<TId, TDataLayer, TResult> 
+        where TDataLayer : IModuleDataLayer<TId>
         where TResult : CopyFilesModuleResult
     {
         public override string Name { get; set; } = "Copy Files";

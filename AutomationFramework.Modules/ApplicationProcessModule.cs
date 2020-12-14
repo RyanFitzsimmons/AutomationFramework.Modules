@@ -9,8 +9,8 @@ using System.Text;
 
 namespace AutomationFramework.Modules
 {
-    public abstract class ApplicationProcessModule<TDataLayer, TResult> : Module<TDataLayer, TResult> 
-        where TDataLayer : IModuleDataLayer
+    public abstract class ApplicationProcessModule<TId, TDataLayer, TResult> : Module<TId, TDataLayer, TResult> 
+        where TDataLayer : IModuleDataLayer<TId>
         where TResult : ApplicationProcessModuleResult
     {
         public event EventHandler<string> ConsoleOutput;
