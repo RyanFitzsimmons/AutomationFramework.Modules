@@ -9,12 +9,13 @@ using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
-    public class CopyFilesModule<TId, TDataLayer, TResult> : Module<TDataLayer, TResult> 
+    public class TransferFilesModule<TDataLayer, TResult> : Module<TDataLayer, TResult> 
         where TDataLayer : IModuleDataLayer
-        where TResult : CopyFilesModuleResult
+        where TResult : TransferFilesModuleResult
     {
         public override string Name { get; set; } = "Copy Files";
 
+        public TransferTypes TransferType { get; set; }
         public string SearchPattern { get; set; }
         public DirectoryInfo SourceDirectory { get; set; }
         public SearchOption SearchOption { get; set; }
@@ -41,6 +42,13 @@ namespace AutomationFramework.Modules
                         file.CopyTo(fileDestination, Overwrite);
                         destinationPaths.Add(fileDestination);
                     });
+
+                    if (TransferType == TransferTypes.Move)
+                        GetRetryPolicy().Execute(() =>
+                        {
+                            Logger.Information(StagePath, $"Deleting file \"{file.FullName}\"");
+                            file.Delete();
+                        });
                 }
                 catch (IOException ex)
                 {

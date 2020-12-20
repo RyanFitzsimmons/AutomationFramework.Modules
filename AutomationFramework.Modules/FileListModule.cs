@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
-    public class FileListModule<TId, TDataLayer, TResult> : Module<TDataLayer, TResult> 
+    public class FileListModule<TDataLayer, TResult> : Module<TDataLayer, TResult> 
         where TDataLayer : IModuleDataLayer
         where TResult : FileListModuleResult
     {

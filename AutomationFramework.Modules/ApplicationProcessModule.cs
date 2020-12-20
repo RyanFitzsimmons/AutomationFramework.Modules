@@ -9,7 +9,7 @@ using System.Text;
 
 namespace AutomationFramework.Modules
 {
-    public abstract class ApplicationProcessModule<TId, TDataLayer, TResult> : Module<TDataLayer, TResult> 
+    public abstract class ApplicationProcessModule<TDataLayer, TResult> : Module<TDataLayer, TResult> 
         where TDataLayer : IModuleDataLayer
         where TResult : ApplicationProcessModuleResult
     {
@@ -23,22 +23,24 @@ namespace AutomationFramework.Modules
         private readonly object _Lock = new object();
         private int? ProcessID { get; set; }
 
-        protected override void PreCancellation()
-        {
-            lock (_Lock)
+        public override Action<IModule, IMetaData> PreCancellation { get; set; } =
+            (module, metaData) =>
             {
-                if (ProcessID == null) return;
-
-                try
+                lock ((module as ApplicationProcessModule<TDataLayer, TResult>)._Lock)
                 {
-                    var process = Process.GetProcessById((int)ProcessID);
+                    var id = (module as ApplicationProcessModule<TDataLayer, TResult>).ProcessID;
+                    if (id == null) return;
 
-                    if (process != null)
-                        process.Kill();
+                    try
+                    {
+                        var process = Process.GetProcessById((int)id);
+
+                        if (process != null)
+                            process.Kill();
+                    }
+                    catch { }
                 }
-                catch { }
-            }
-        }
+            };
 
         protected override TResult DoWork()
         {
