@@ -13,34 +13,33 @@ namespace AutomationFramework.Modules
         where TDataLayer : IModuleDataLayer
         where TResult : ApplicationProcessModuleResult
     {
+        public ApplicationProcessModule() : base()
+        {
+            PreCancellation += OnPreCancellation;
+        }
+
         public event EventHandler<string> ConsoleOutput;
 
         public virtual string ApplicationPath { get; set; }
 
         public virtual string Arguments { get; set; }
 
-
         private readonly object _Lock = new object();
         private int? ProcessID { get; set; }
 
-        public override Action<IModule, IMetaData> PreCancellation { get; set; } =
-            (module, metaData) =>
+        private void OnPreCancellation(IModule module)
+        {
+            lock ((module as ApplicationProcessModule<TDataLayer, TResult>)._Lock)
             {
-                lock ((module as ApplicationProcessModule<TDataLayer, TResult>)._Lock)
-                {
-                    var id = (module as ApplicationProcessModule<TDataLayer, TResult>).ProcessID;
-                    if (id == null) return;
+                var id = (module as ApplicationProcessModule<TDataLayer, TResult>).ProcessID;
+                if (id == null) return;
 
-                    try
-                    {
-                        var process = Process.GetProcessById((int)id);
+                var process = Process.GetProcessById((int)id);
 
-                        if (process != null)
-                            process.Kill();
-                    }
-                    catch { }
-                }
-            };
+                if (process != null)
+                    process.Kill();
+            }
+        }
 
         protected override TResult DoWork()
         {
@@ -57,8 +56,8 @@ namespace AutomationFramework.Modules
                 UseShellExecute = false
             };
 
-            Logger.Information(StagePath, psi.FileName + " " + psi.Arguments);
-            void onConsoleOutput(object sender, string text) { Logger.Information(StagePath, text); }
+            Log(LogLevels.Information, psi.FileName + " " + psi.Arguments);
+            void onConsoleOutput(object sender, string text) { Log(LogLevels.Information, text); }
 
             try
             {
@@ -78,7 +77,8 @@ namespace AutomationFramework.Modules
             }
             catch (Exception ex)
             {
-                result.ExceptionMsg = ex.Message;
+                result.ExceptionMessage = ex.Message;
+                throw;
             }
             finally
             {
@@ -98,9 +98,9 @@ namespace AutomationFramework.Modules
 
             foreach (var property in properties)
             {
-                var flagAtt = Attribute.GetCustomAttributes(property, typeof(CmdArgumentFlagAttribute)).SingleOrDefault() as CmdArgumentFlagAttribute;
-                var orderAtt = Attribute.GetCustomAttributes(property, typeof(CmdArgumentOrderAttribute)).SingleOrDefault() as CmdArgumentOrderAttribute;
-                var includeAtt = Attribute.GetCustomAttributes(property, typeof(CmdArgumentIncludeAttribute)).SingleOrDefault() as CmdArgumentIncludeAttribute;
+                var flagAtt = Attribute.GetCustomAttributes(property, typeof(ApplicationProcessModuleFlagAttribute)).SingleOrDefault() as ApplicationProcessModuleFlagAttribute;
+                var orderAtt = Attribute.GetCustomAttributes(property, typeof(ApplicationProcessModuleOrderAttribute)).SingleOrDefault() as ApplicationProcessModuleOrderAttribute;
+                var includeAtt = Attribute.GetCustomAttributes(property, typeof(ApplicationProcessModuleIncludeAttribute)).SingleOrDefault() as ApplicationProcessModuleIncludeAttribute;
 
                 args.Add(new Tuple<int?, string, string, bool>(orderAtt?.OrderBy, flagAtt?.Flag, property.GetValue(this)?.ToString(), includeAtt.ForceQuotes));
             }
@@ -117,7 +117,7 @@ namespace AutomationFramework.Modules
             return this.GetType().GetProperties(
                     BindingFlags.NonPublic | BindingFlags.Public |
                     BindingFlags.Instance | BindingFlags.Static)
-                .Where(x => Attribute.GetCustomAttributes(x, typeof(CmdArgumentIncludeAttribute)).Any()).ToArray();
+                .Where(x => Attribute.GetCustomAttributes(x, typeof(ApplicationProcessModuleIncludeAttribute)).Any()).ToArray();
         }
 
         private static string ArgumentsToString(List<Tuple<string, string, bool>> arguments)

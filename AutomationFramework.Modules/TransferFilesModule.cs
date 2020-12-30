@@ -38,7 +38,7 @@ namespace AutomationFramework.Modules
 
                     GetRetryPolicy().Execute(() =>
                     {
-                        Logger.Information(StagePath, $"Copying file \"{file.FullName}\" to \"{fileDestination}\"");
+                        Log(LogLevels.Information, $"Copying file \"{file.FullName}\" to \"{fileDestination}\"");
                         file.CopyTo(fileDestination, Overwrite);
                         destinationPaths.Add(fileDestination);
                     });
@@ -46,14 +46,15 @@ namespace AutomationFramework.Modules
                     if (TransferType == TransferTypes.Move)
                         GetRetryPolicy().Execute(() =>
                         {
-                            Logger.Information(StagePath, $"Deleting file \"{file.FullName}\"");
+                            Log(LogLevels.Information, $"Deleting file \"{file.FullName}\"");
                             file.Delete();
                         });
                 }
-                catch (IOException ex)
+                catch 
                 {
-                    Logger.Fatal(StagePath, $"Failed to copy file \"{file.FullName}\"");
-                    Logger.Fatal(StagePath, ex.ToString());
+                    /// Logging the name of the file which failed to copy. The exception details
+                    /// will be logged by the kernel
+                    Log(LogLevels.Error, $"Failed to copy file \"{file.FullName}\"");
                     throw;
                 }
             }
