@@ -11,7 +11,11 @@ namespace AutomationFramework.Modules
         where TDataLayer : IModuleDataLayer
         where TResult : FileListModuleResult
     {
-        public override string Name { get; set; } = "File List";
+        public FileListModule(IRunInfo runInfo, StagePath stagePath, IMetaData metaData) : base(runInfo, stagePath, metaData)
+        {
+        }
+
+        public override string Name { get; init; } = "File List";
 
         public FileInfo[] Files { get; set; }
 

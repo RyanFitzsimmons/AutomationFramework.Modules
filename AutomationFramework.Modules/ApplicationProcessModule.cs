@@ -13,7 +13,7 @@ namespace AutomationFramework.Modules
         where TDataLayer : IModuleDataLayer
         where TResult : ApplicationProcessModuleResult
     {
-        public ApplicationProcessModule() : base()
+        protected ApplicationProcessModule(IRunInfo runInfo, StagePath stagePath, IMetaData metaData) : base(runInfo, stagePath, metaData)
         {
             PreCancellation += OnPreCancellation;
         }

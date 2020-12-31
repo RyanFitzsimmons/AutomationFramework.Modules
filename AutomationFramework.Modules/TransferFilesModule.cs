@@ -13,7 +13,11 @@ namespace AutomationFramework.Modules
         where TDataLayer : IModuleDataLayer
         where TResult : TransferFilesModuleResult
     {
-        public override string Name { get; set; } = "Copy Files";
+        public TransferFilesModule(IRunInfo runInfo, StagePath stagePath, IMetaData metaData) : base(runInfo, stagePath, metaData)
+        {
+        }
+
+        public override string Name { get; init; } = "Copy Files";
 
         public TransferTypes TransferType { get; set; }
         public string SearchPattern { get; set; }
