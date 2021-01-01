@@ -7,11 +7,10 @@ using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
-    public class FileListModule<TDataLayer, TResult> : Module<TDataLayer, TResult> 
-        where TDataLayer : IModuleDataLayer
+    public class FileListModule<TDataLayer, TResult> : Module<TResult> 
         where TResult : FileListModuleResult
     {
-        public FileListModule(IRunInfo runInfo, StagePath stagePath, IMetaData metaData) : base(runInfo, stagePath, metaData)
+        public FileListModule(IDataLayer dataLayer, IRunInfo runInfo, StagePath stagePath) : base(dataLayer, runInfo, stagePath)
         {
         }
 
@@ -28,7 +27,7 @@ namespace AutomationFramework.Modules
         protected override TResult DoWork()
         {
             var result = Activator.CreateInstance<TResult>();
-            var filePath = Path.Combine(DestinationDirectory.FullName, FileName);
+            var filePath = System.IO.Path.Combine(DestinationDirectory.FullName, FileName);
             using (StreamWriter sw = new StreamWriter(filePath, false, Encoding.Default))
             {
                 foreach (var file in Files)

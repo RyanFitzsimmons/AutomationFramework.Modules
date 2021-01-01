@@ -9,11 +9,10 @@ using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
-    public class TransferFilesModule<TDataLayer, TResult> : Module<TDataLayer, TResult> 
-        where TDataLayer : IModuleDataLayer
+    public class TransferFilesModule<TDataLayer, TResult> : Module<TResult> 
         where TResult : TransferFilesModuleResult
     {
-        public TransferFilesModule(IRunInfo runInfo, StagePath stagePath, IMetaData metaData) : base(runInfo, stagePath, metaData)
+        public TransferFilesModule(IDataLayer dataLayer, IRunInfo runInfo, StagePath stagePath) : base(dataLayer, runInfo, stagePath)
         {
         }
 
@@ -35,10 +34,10 @@ namespace AutomationFramework.Modules
             {
                 try
                 {
-                    var destinationDirectory = Path.Combine(DestinationDirectory.FullName, file.Directory.FullName.Remove(0, SourceDirectory.FullName.Length));
+                    var destinationDirectory = System.IO.Path.Combine(DestinationDirectory.FullName, file.Directory.FullName.Remove(0, SourceDirectory.FullName.Length));
                     if (!Directory.Exists(destinationDirectory))
                         GetRetryPolicy().Execute(() => Directory.CreateDirectory(destinationDirectory));
-                    var fileDestination = Path.Combine(destinationDirectory, file.Name);
+                    var fileDestination = System.IO.Path.Combine(destinationDirectory, file.Name);
 
                     GetRetryPolicy().Execute(() =>
                     {

@@ -9,11 +9,10 @@ using System.Text;
 
 namespace AutomationFramework.Modules
 {
-    public abstract class ApplicationProcessModule<TDataLayer, TResult> : Module<TDataLayer, TResult> 
-        where TDataLayer : IModuleDataLayer
+    public abstract class ApplicationProcessModule<TDataLayer, TResult> : Module<TResult> 
         where TResult : ApplicationProcessModuleResult
     {
-        protected ApplicationProcessModule(IRunInfo runInfo, StagePath stagePath, IMetaData metaData) : base(runInfo, stagePath, metaData)
+        protected ApplicationProcessModule(IDataLayer dataLayer, IRunInfo runInfo, StagePath stagePath) : base(dataLayer, runInfo, stagePath)
         {
             PreCancellation += OnPreCancellation;
         }
