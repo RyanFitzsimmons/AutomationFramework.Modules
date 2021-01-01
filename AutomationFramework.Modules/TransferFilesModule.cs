@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
-    public class TransferFilesModule<TDataLayer, TResult> : Module<TResult> 
+    public class TransferFilesModule<TResult> : Module<TResult> 
         where TResult : TransferFilesModuleResult
     {
         public TransferFilesModule(IDataLayer dataLayer, IRunInfo runInfo, StagePath stagePath) : base(dataLayer, runInfo, stagePath)

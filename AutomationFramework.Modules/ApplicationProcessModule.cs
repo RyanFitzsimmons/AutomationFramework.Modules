@@ -9,7 +9,7 @@ using System.Text;
 
 namespace AutomationFramework.Modules
 {
-    public abstract class ApplicationProcessModule<TDataLayer, TResult> : Module<TResult> 
+    public abstract class ApplicationProcessModule<TResult> : Module<TResult> 
         where TResult : ApplicationProcessModuleResult
     {
         protected ApplicationProcessModule(IDataLayer dataLayer, IRunInfo runInfo, StagePath stagePath) : base(dataLayer, runInfo, stagePath)
@@ -28,9 +28,9 @@ namespace AutomationFramework.Modules
 
         private void OnPreCancellation(IModule module)
         {
-            lock ((module as ApplicationProcessModule<TDataLayer, TResult>)._Lock)
+            lock ((module as ApplicationProcessModule<TResult>)._Lock)
             {
-                var id = (module as ApplicationProcessModule<TDataLayer, TResult>).ProcessID;
+                var id = (module as ApplicationProcessModule<TResult>).ProcessID;
                 if (id == null) return;
 
                 var process = Process.GetProcessById((int)id);
