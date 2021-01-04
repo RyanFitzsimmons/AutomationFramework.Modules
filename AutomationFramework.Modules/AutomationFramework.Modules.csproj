@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <PackageId>AutomationFramework.Modules</PackageId>
-    <Version>1.0.21</Version>
+    <Version>1.0.22</Version>
     <Authors>Ryan Fitzsimmons</Authors>
     <PackageDescription>Library of modules for automationframework</PackageDescription>
     <RepositoryUrl>https://github.com/RyanFitzsimmons/AutomationFramework.Modules/tree/master/AutomationFramework.Modules</RepositoryUrl>

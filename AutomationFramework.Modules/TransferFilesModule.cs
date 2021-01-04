@@ -16,20 +16,25 @@ namespace AutomationFramework.Modules
         {
         }
 
-        public override string Name { get; init; } = "Copy Files";
+        public override string Name { get; init; } = "Transfer Files";
 
         public TransferTypes TransferType { get; set; }
         public string SearchPattern { get; set; }
-        public DirectoryInfo SourceDirectory { get; set; }
+        public string SourceDirectoryPath { get; set; }
+        private DirectoryInfo SourceDirectory => new DirectoryInfo(SourceDirectoryPath);
         public SearchOption SearchOption { get; set; }
-        public DirectoryInfo DestinationDirectory { get; set; }
+        public string[] SourceFilePaths { get; set; }
+        public string DestinationDirectoryPath { get; set; }
+        private DirectoryInfo DestinationDirectory => new DirectoryInfo(DestinationDirectoryPath);
         public bool Overwrite { get; set; }
 
         protected override TResult DoWork()
         {
             var result = Activator.CreateInstance<TResult>();
             var destinationPaths = new List<string>();
-            var files = SourceDirectory.GetFiles(SearchPattern, SearchOption);
+            var files = SourceFilePaths.Select(x => new FileInfo(x));
+            if (files == null)
+                files = SourceDirectory.GetFiles(SearchPattern, SearchOption);
             foreach (var file in files)
             {
                 try
