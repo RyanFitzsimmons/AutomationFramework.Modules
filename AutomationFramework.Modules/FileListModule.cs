@@ -10,7 +10,7 @@ namespace AutomationFramework.Modules
     public class FileListModule<TResult> : Module<TResult> 
         where TResult : FileListModuleResult
     {
-        public FileListModule(IDataLayer dataLayer, IRunInfo runInfo, StagePath stagePath) : base(dataLayer, runInfo, stagePath)
+        public FileListModule(IStageBuilder builder) : base(builder)
         {
         }
 

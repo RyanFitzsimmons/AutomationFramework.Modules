@@ -12,7 +12,7 @@ namespace AutomationFramework.Modules
     public abstract class ApplicationProcessModule<TResult> : Module<TResult> 
         where TResult : ApplicationProcessModuleResult
     {
-        protected ApplicationProcessModule(IDataLayer dataLayer, IRunInfo runInfo, StagePath stagePath) : base(dataLayer, runInfo, stagePath)
+        protected ApplicationProcessModule(IStageBuilder builder) : base(builder)
         {
             PreCancellation += OnPreCancellation;
         }

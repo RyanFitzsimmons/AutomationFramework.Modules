@@ -12,7 +12,7 @@ namespace AutomationFramework.Modules
     public class TransferFilesModule<TResult> : Module<TResult> 
         where TResult : TransferFilesModuleResult
     {
-        public TransferFilesModule(IDataLayer dataLayer, IRunInfo runInfo, StagePath stagePath) : base(dataLayer, runInfo, stagePath)
+        public TransferFilesModule(IStageBuilder builder) : base(builder)
         {
         }
 
