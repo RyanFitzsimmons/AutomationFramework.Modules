@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <PackageId>AutomationFramework.Modules</PackageId>
-    <Version>1.0.28</Version>
+    <Version>1.0.29</Version>
     <Authors>Ryan Fitzsimmons</Authors>
     <PackageDescription>Library of modules for automationframework</PackageDescription>
     <RepositoryUrl>https://github.com/RyanFitzsimmons/AutomationFramework.Modules/tree/master/AutomationFramework.Modules</RepositoryUrl>
@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutomationFramework" Version="1.0.30" />
+    <PackageReference Include="AutomationFramework" Version="1.0.31" />
     <PackageReference Include="Polly" Version="7.2.1" />
   </ItemGroup>
 
