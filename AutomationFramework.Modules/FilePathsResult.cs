@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
-    public enum TransferTypes
+    public class FilePathsResult
     {
-        Copy,
-        Move
+        public string[] FilePaths { get; set; }
     }
 }

@@ -9,40 +9,55 @@ using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
-    public class TransferFilesModule<TResult> : Module<TResult> 
-        where TResult : TransferFilesModuleResult
+    public class CopyDirectoryModule<TResult> : Module<TResult> where TResult : FilePathsResult
     {
-        public TransferFilesModule(IStageBuilder builder) : base(builder)
+        public CopyDirectoryModule(IStageBuilder builder) : base(builder)
         {
         }
 
-        public override string Name { get; init; } = "Transfer Files";
-
-        public TransferTypes TransferType { get; set; }
-        public string SearchPattern { get; set; }
-        public string SourceDirectoryPath { get; set; }
+        public string SourceDirectoryPath { get; init; }
+        public string DestinationDirectoryPath { get; init; }
+        public bool Recursive { get; init; }
+        public bool Overwrite { get; init; }
         private DirectoryInfo SourceDirectory => new DirectoryInfo(SourceDirectoryPath);
-        public SearchOption SearchOption { get; set; }
-        public string[] SourceFilePaths { get; set; }
-        public string DestinationDirectoryPath { get; set; }
         private DirectoryInfo DestinationDirectory => new DirectoryInfo(DestinationDirectoryPath);
-        public bool Overwrite { get; set; }
+
+        private bool IsValid
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(SourceDirectoryPath))
+                {
+                    Log(LogLevels.Error, "Source directory path is empty");
+                    return false;
+                }
+
+
+                if (string.IsNullOrWhiteSpace(DestinationDirectoryPath))
+                {
+                    Log(LogLevels.Error, "Destination directory path is empty");
+                    return false;
+                }
+
+                return true;
+            }
+        }
 
         protected override TResult DoWork()
         {
             var result = Activator.CreateInstance<TResult>();
+            if (!IsValid) throw new Exception("Invalid Module Setup");
+
             var destinationPaths = new List<string>();
-            var files = SourceFilePaths.Select(x => new FileInfo(x));
-            if (files == null)
-                files = SourceDirectory.GetFiles(SearchPattern, SearchOption);
+            var files = SourceDirectory.GetFiles("*", (Recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly));
             foreach (var file in files)
             {
                 try
                 {
-                    var destinationDirectory = System.IO.Path.Combine(DestinationDirectory.FullName, file.Directory.FullName.Remove(0, SourceDirectory.FullName.Length));
+                    var destinationDirectory = Path.Combine(DestinationDirectory.FullName, file.Directory.FullName.Remove(0, SourceDirectory.FullName.Length));
                     if (!Directory.Exists(destinationDirectory))
                         GetRetryPolicy().Execute(() => Directory.CreateDirectory(destinationDirectory));
-                    var fileDestination = System.IO.Path.Combine(destinationDirectory, file.Name);
+                    var fileDestination = Path.Combine(destinationDirectory, file.Name);
 
                     GetRetryPolicy().Execute(() =>
                     {
@@ -50,15 +65,8 @@ namespace AutomationFramework.Modules
                         file.CopyTo(fileDestination, Overwrite);
                         destinationPaths.Add(fileDestination);
                     });
-
-                    if (TransferType == TransferTypes.Move)
-                        GetRetryPolicy().Execute(() =>
-                        {
-                            Log(LogLevels.Information, $"Deleting file \"{file.FullName}\"");
-                            file.Delete();
-                        });
                 }
-                catch 
+                catch
                 {
                     /// Logging the name of the file which failed to copy. The exception details
                     /// will be logged by the kernel
