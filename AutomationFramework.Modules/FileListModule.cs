@@ -15,14 +15,10 @@ namespace AutomationFramework.Modules
         }
 
         public override string Name { get; init; } = "File List";
-
-        public FileInfo[] Files { get; set; }
-
-        public bool IncludeDirectoryPath { get; set; }
-
-        public string FileName { get; set; }
-
-        public DirectoryInfo DestinationDirectory { get; set; }
+        public FileInfo[] Files { get; init; }
+        public bool IncludeDirectoryPath { get; init; }
+        public string FileName { get; init; }
+        public DirectoryInfo DestinationDirectory { get; init; }
 
         protected override TResult DoWork()
         {

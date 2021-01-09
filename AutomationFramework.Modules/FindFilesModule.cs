@@ -11,7 +11,7 @@ namespace AutomationFramework.Modules
         }
 
         public string SourceDirectoryPath { get; init; }
-        public string SearchPattern { get; set; }
+        public string SearchPattern { get; init; }
         public bool Recursive { get; init; }
         private DirectoryInfo SourceDirectory => new DirectoryInfo(SourceDirectoryPath);
 

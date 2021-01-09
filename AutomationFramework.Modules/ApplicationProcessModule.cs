@@ -19,9 +19,8 @@ namespace AutomationFramework.Modules
 
         public event EventHandler<string> ConsoleOutput;
 
-        public virtual string ApplicationPath { get; set; }
-
-        public virtual string Arguments { get; set; }
+        public virtual string ApplicationPath { get; init; }
+        public virtual string Arguments { get; init; }
 
         private readonly object _Lock = new object();
         private int? ProcessID { get; set; }
