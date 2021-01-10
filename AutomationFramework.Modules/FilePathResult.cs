@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
-    public class FileListModuleResult
+    public class FilePathResult
     {
         public string FilePath { get; set; }
     }

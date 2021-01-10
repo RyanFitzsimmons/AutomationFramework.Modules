@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace AutomationFramework.Modules
 {
     public class FileListModule<TResult> : Module<TResult> 
-        where TResult : FileListModuleResult
+        where TResult : FilePathResult
     {
         public FileListModule(IStageBuilder builder) : base(builder)
         {
