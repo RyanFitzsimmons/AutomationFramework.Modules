@@ -54,7 +54,8 @@ namespace AutomationFramework.Modules
             {
                 try
                 {
-                    var destinationDirectory = Path.Combine(DestinationDirectory.FullName, file.Directory.FullName.Remove(0, SourceDirectory.FullName.Length));
+                    var relativePath = file.Directory.FullName.Remove(0, SourceDirectory.FullName.Length);
+                    var destinationDirectory = DestinationDirectory.FullName + relativePath;
                     if (!Directory.Exists(destinationDirectory))
                         GetRetryPolicy().Execute(() => Directory.CreateDirectory(destinationDirectory));
                     var fileDestination = Path.Combine(destinationDirectory, file.Name);
