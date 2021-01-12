@@ -28,6 +28,7 @@ namespace AutomationFramework.Modules
             {
                 foreach (var file in Files)
                 {
+                    CheckForCancellation();
                     if (IncludeDirectoryPath) sw.WriteLine(file.FullName);
                     else sw.WriteLine(file.Name);
                 }

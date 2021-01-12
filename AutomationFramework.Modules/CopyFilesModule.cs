@@ -18,6 +18,12 @@ namespace AutomationFramework.Modules
         public string[] SourceFilePaths { get; init; }
         public string DestinationDirectoryPath { get; init; }
         public bool Overwrite { get; init; }
+        /// <summary>
+        /// If an IO Exception occurs, this is the number of times
+        /// it will retry before throwing the exception. 
+        /// Default = 5
+        /// </summary>
+        public int RetryAttempts { get; init; } = 5;
         private DirectoryInfo DestinationDirectory => new DirectoryInfo(DestinationDirectoryPath);
 
         private bool IsValid
@@ -45,6 +51,7 @@ namespace AutomationFramework.Modules
             {
                 try
                 {
+                    CheckForCancellation();
                     if (!DestinationDirectory.Exists)
                         GetRetryPolicy().Execute(() => DestinationDirectory.Create());
                     var fileDestination = Path.Combine(DestinationDirectory.FullName, file.Name);
@@ -69,12 +76,19 @@ namespace AutomationFramework.Modules
             return result;
         }
 
-        private static RetryPolicy GetRetryPolicy()
+        private RetryPolicy GetRetryPolicy()
         {
             return Policy
                 .Handle<IOException>()
-                .WaitAndRetry(25,
-                retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+                .WaitAndRetry(
+                RetryAttempts,
+                retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                (e, t, i, c) =>
+                {
+                    Log(LogLevels.Warning, e);
+                    CheckForCancellation();
+                    Log(LogLevels.Warning, $"{i} Retrying in {t.TotalSeconds} seconds");
+                });
         }
     }
 }

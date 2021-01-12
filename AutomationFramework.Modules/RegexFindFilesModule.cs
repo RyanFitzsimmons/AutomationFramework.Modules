@@ -47,8 +47,11 @@ namespace AutomationFramework.Modules
                 (Recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly));
             List<string> matches = new();
             foreach (var file in allFiles)
+            {
+                CheckForCancellation();
                 if (Regex.IsMatch(file.Name, RegexPattern))
                     matches.Add(file.FullName);
+            }
             result.FilePaths = matches.ToArray();
             return result;
         }
