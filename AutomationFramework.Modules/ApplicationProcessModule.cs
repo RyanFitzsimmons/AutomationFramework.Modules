@@ -17,8 +17,6 @@ namespace AutomationFramework.Modules
             PreCancellation += OnPreCancellation;
         }
 
-        public event EventHandler<string> ConsoleOutput;
-
         public virtual string ApplicationPath { get; init; }
         public virtual string Arguments { get; init; }
 
@@ -55,22 +53,24 @@ namespace AutomationFramework.Modules
             };
 
             Log(LogLevels.Information, psi.FileName + " " + psi.Arguments);
-            void onConsoleOutput(object sender, string text) { Log(LogLevels.Information, text); }
 
             try
             {
-                ConsoleOutput += onConsoleOutput;
-
                 using var process = Process.Start(psi);
                 lock (_Lock)
+                {
                     ProcessID = process.Id;
+                    Log(LogLevels.Information, $"Process ID: {process.Id}");
+                }
 
-                process.OutputDataReceived += (s, e) => { if (e.Data != null) ConsoleOutput?.Invoke(this, e.Data); };
-                process.ErrorDataReceived += (s, e) => { if (e.Data != null) ConsoleOutput?.Invoke(this, e.Data); };
+                process.OutputDataReceived += Process_OutputDataReceived;
+                process.ErrorDataReceived += Process_ErrorDataReceived;
 
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
                 process.WaitForExit();
+                process.OutputDataReceived -= Process_OutputDataReceived;
+                process.ErrorDataReceived -= Process_ErrorDataReceived;
                 result.ExitCode = process.ExitCode;
             }
             catch (Exception ex)
@@ -80,12 +80,21 @@ namespace AutomationFramework.Modules
             }
             finally
             {
-                ConsoleOutput -= onConsoleOutput;
                 lock (_Lock)
                     ProcessID = null;
             }
 
             return result;
+        }
+
+        private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            if (e.Data != null) Log(LogLevels.Warning, e.Data);
+        }
+
+        private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            if (e.Data != null) Log(LogLevels.Information, e.Data);
         }
 
         private List<Tuple<string, string, bool>> GetArgumentsFromProperties()
