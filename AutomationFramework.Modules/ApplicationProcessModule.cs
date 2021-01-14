@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace AutomationFramework.Modules
 {
@@ -29,21 +28,14 @@ namespace AutomationFramework.Modules
             {
                 var id = (module as ApplicationProcessModule<TResult>).ProcessID;
                 if (id == null) return;
-
                 var process = Process.GetProcessById((int)id);
-
                 if (process != null)
                     process.Kill();
             }
         }
 
-        protected override TResult DoWork()
-        {
-            var result = Activator.CreateInstance<TResult>();
-
-            if (string.IsNullOrWhiteSpace(ApplicationPath)) return result;
-
-            ProcessStartInfo psi = new ProcessStartInfo
+        private ProcessStartInfo GetProcessStartInfo() =>
+            new ProcessStartInfo
             {
                 FileName = ApplicationPath,
                 Arguments = Arguments ?? ArgumentsToString(GetArgumentsFromProperties()),
@@ -52,6 +44,11 @@ namespace AutomationFramework.Modules
                 UseShellExecute = false
             };
 
+        protected override TResult DoWork()
+        {
+            var result = Activator.CreateInstance<TResult>();
+            if (string.IsNullOrWhiteSpace(ApplicationPath)) return result;
+            ProcessStartInfo psi = GetProcessStartInfo();
             Log(LogLevels.Information, psi.FileName + " " + psi.Arguments);
 
             try
@@ -65,7 +62,6 @@ namespace AutomationFramework.Modules
 
                 process.OutputDataReceived += Process_OutputDataReceived;
                 process.ErrorDataReceived += Process_ErrorDataReceived;
-
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
                 process.WaitForExit();
@@ -76,6 +72,7 @@ namespace AutomationFramework.Modules
             catch (Exception ex)
             {
                 result.ExceptionMessage = ex.Message;
+                result.Exception = ex.ToString();
                 throw;
             }
             finally
@@ -100,7 +97,6 @@ namespace AutomationFramework.Modules
         private List<Tuple<string, string, bool>> GetArgumentsFromProperties()
         {
             var properties = GetArgumentProperties();
-
             var args = new List<Tuple<int?, string, string, bool>>();
 
             foreach (var property in properties)
@@ -115,17 +111,15 @@ namespace AutomationFramework.Modules
             List<Tuple<string, string, bool>> orderedArgs = new List<Tuple<string, string, bool>>();
             orderedArgs.AddRange(args.Where(x => x.Item1 != null).OrderBy(x => x.Item1).Select(x => new Tuple<string, string, bool>(x.Item2, x.Item3, x.Item4)));
             orderedArgs.AddRange(args.Where(x => x.Item1 == null).Select(x => new Tuple<string, string, bool>(x.Item2, x.Item3, x.Item4)));
-
             return orderedArgs;
         }
 
-        private PropertyInfo[] GetArgumentProperties()
-        {
-            return this.GetType().GetProperties(
-                    BindingFlags.NonPublic | BindingFlags.Public |
-                    BindingFlags.Instance | BindingFlags.Static)
-                .Where(x => Attribute.GetCustomAttributes(x, typeof(ApplicationProcessModuleIncludeAttribute)).Any()).ToArray();
-        }
+        private PropertyInfo[] GetArgumentProperties() =>
+            this.GetType().GetProperties(
+                BindingFlags.NonPublic | BindingFlags.Public |
+                BindingFlags.Instance | BindingFlags.Static)
+            .Where(x => Attribute.GetCustomAttributes(x, typeof(ApplicationProcessModuleIncludeAttribute)).Any())
+            .ToArray();
 
         private static string ArgumentsToString(List<Tuple<string, string, bool>> arguments)
         {
@@ -137,19 +131,11 @@ namespace AutomationFramework.Modules
                 var forceQuotes = arg.Item3;
 
                 if (flag != null && flag.Length > 0)
-                {
                     s += flag + " ";
-                }
 
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    s += "\"\" ";
-                }
-                else
-                {
-                    if (value.Contains(" ") || forceQuotes) s += "\"" + value + "\" ";
-                    else s += value + " ";
-                }
+                if (string.IsNullOrWhiteSpace(value)) s += "\"\" ";
+                else if (value.Contains(" ") || forceQuotes) s += "\"" + value + "\" ";
+                else s += value + " ";
             }
 
             return s.Trim();

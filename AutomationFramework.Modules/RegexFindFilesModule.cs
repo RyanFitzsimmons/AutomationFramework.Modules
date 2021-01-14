@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
     public class RegexFindFilesModule<TResult> : Module<TResult> where TResult : FilePathsResult
     {
-        public RegexFindFilesModule(IStageBuilder builder) : base(builder)
-        {
-        }
+        public RegexFindFilesModule(IStageBuilder builder) 
+            : base(builder) { }
 
         public string RegexPattern { get; init; }
         public string SourceDirectoryPath { get; init; }

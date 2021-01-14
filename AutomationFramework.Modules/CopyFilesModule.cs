@@ -4,16 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
     public class CopyFilesModule<TResult> : Module<TResult> where TResult : FilePathsResult
     {
-        public CopyFilesModule(IStageBuilder builder) : base(builder)
-        {
-        }
+        public CopyFilesModule(IStageBuilder builder) 
+            : base(builder) { }
 
         public string[] SourceFilePaths { get; init; }
         public string DestinationDirectoryPath { get; init; }
@@ -44,7 +41,6 @@ namespace AutomationFramework.Modules
         {
             var result = Activator.CreateInstance<TResult>();
             if (!IsValid) throw new Exception("Invalid Module Setup");
-
             var destinationPaths = new List<string>();
             var files = (SourceFilePaths ?? Array.Empty<string>()).Select(x => new FileInfo(x));
             foreach (var file in files)
@@ -76,19 +72,17 @@ namespace AutomationFramework.Modules
             return result;
         }
 
-        private RetryPolicy GetRetryPolicy()
-        {
-            return Policy
-                .Handle<IOException>()
-                .WaitAndRetry(
-                RetryAttempts,
-                retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                (e, t, i, c) =>
-                {
-                    Log(LogLevels.Warning, e);
-                    CheckForCancellation();
-                    Log(LogLevels.Warning, $"{i} Retrying in {t.TotalSeconds} seconds");
-                });
-        }
+        private RetryPolicy GetRetryPolicy() =>
+            Policy
+            .Handle<IOException>()
+            .WaitAndRetry(
+            RetryAttempts,
+            retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+            (e, t, i, c) =>
+            {
+                Log(LogLevels.Warning, e);
+                CheckForCancellation();
+                Log(LogLevels.Warning, $"{i} Retrying in {t.TotalSeconds} seconds");
+            });
     }
 }

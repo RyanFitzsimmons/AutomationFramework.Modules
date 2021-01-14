@@ -6,9 +6,8 @@ namespace AutomationFramework.Modules
 {
     public class FindFilesModule<TResult> : Module<TResult> where TResult : FilePathsResult
     {
-        public FindFilesModule(IStageBuilder builder) : base(builder)
-        {
-        }
+        public FindFilesModule(IStageBuilder builder) 
+            : base(builder) { }
 
         public string SourceDirectoryPath { get; init; }
         public string SearchPattern { get; init; }
