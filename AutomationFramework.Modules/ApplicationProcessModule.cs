@@ -9,7 +9,7 @@ using System.Reflection;
 namespace AutomationFramework.Modules
 {
     public abstract class ApplicationProcessModule<TResult> : Module<TResult> 
-        where TResult : ApplicationProcessModuleResult
+        where TResult : ApplicationProcessResult
     {
         protected ApplicationProcessModule(IStageBuilder builder) : base(builder)
         {

@@ -1,6 +1,6 @@
 ﻿namespace AutomationFramework.Modules
 {
-    public class ApplicationProcessModuleResult
+    public class ApplicationProcessResult
     {
         public int ExitCode { get; set; }
         public string ExceptionMessage { get; set; }

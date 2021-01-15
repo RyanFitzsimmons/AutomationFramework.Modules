@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules.UnitTests.ApplicationProcessModule.Modules
 {
-    public class TestProcessModule : ApplicationProcessModule<ApplicationProcessModuleResult>
+    public class TestProcessModule : ApplicationProcessModule<ApplicationProcessResult>
     {
         public TestProcessModule(IStageBuilder builder) : base(builder)
         {
