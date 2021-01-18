@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
@@ -11,26 +13,25 @@ namespace AutomationFramework.Modules
             : base(builder) { }
 
         public override string Name { get; init; } = "File List";
-        public FileInfo[] Files { get; init; }
+        public string[] FilePaths { get; init; }
         public bool IncludeDirectoryPath { get; init; }
-        public string FileName { get; init; }
-        public DirectoryInfo DestinationDirectory { get; init; }
+        public string FilePath { get; init; }
+        public bool Overwrite { get; init; }
+        public Encoding Encoding { get; init; } = Encoding.Default;
 
-        protected override TResult DoWork()
+        protected override async Task<TResult> DoWork(CancellationToken token)
         {
             var result = Activator.CreateInstance<TResult>();
-            var filePath = Path.Combine(DestinationDirectory.FullName, FileName);
-            using (StreamWriter sw = new StreamWriter(filePath, false, Encoding.Default))
+            using (StreamWriter sw = new StreamWriter(FilePath, !Overwrite, Encoding))
             {
-                foreach (var file in Files)
+                foreach (var file in FilePaths)
                 {
-                    CheckForCancellation();
-                    if (IncludeDirectoryPath) sw.WriteLine(file.FullName);
-                    else sw.WriteLine(file.Name);
+                    if (IncludeDirectoryPath) await sw.WriteLineAsync(new StringBuilder(file), token);
+                    else await sw.WriteLineAsync(new StringBuilder(Path.GetFileName(file)), token);
                 }
             }
 
-            result.FilePath = filePath;
+            result.FilePath = FilePath;
             return result;
         }
     }

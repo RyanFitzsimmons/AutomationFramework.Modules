@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
@@ -28,7 +30,7 @@ namespace AutomationFramework.Modules
             }
         }
 
-        protected override TResult DoWork()
+        protected override async Task<TResult> DoWork(CancellationToken token)
         {
             var result = Activator.CreateInstance<TResult>();
             if (!IsValid) throw new Exception("Invalid Module Setup");
@@ -36,7 +38,7 @@ namespace AutomationFramework.Modules
                 (string.IsNullOrWhiteSpace(SearchPattern) ? "*" : SearchPattern), 
                 (Recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly));
             result.FilePaths = files.Select(x => x.FullName).ToArray();
-            return result;
+            return await Task.FromResult(result);
         }
     }
 }

@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
@@ -13,10 +15,10 @@ namespace AutomationFramework.Modules
         public string FilePath { get; init; }
         public Encoding Encoding { get; init; } = Encoding.Default;
 
-        protected override TResult DoWork()
+        protected override async Task<TResult> DoWork(CancellationToken token)
         {
             var result = Activator.CreateInstance<TResult>();
-            result.Lines = File.ReadLines(FilePath, Encoding).ToArray();
+            result.Lines = (await File.ReadAllLinesAsync(FilePath, Encoding, token)).ToArray();
             return result;
         }
     }

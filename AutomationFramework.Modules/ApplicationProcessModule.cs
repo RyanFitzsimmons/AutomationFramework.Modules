@@ -5,34 +5,19 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
     public abstract class ApplicationProcessModule<TResult> : Module<TResult> 
         where TResult : ApplicationProcessResult
     {
-        protected ApplicationProcessModule(IStageBuilder builder) : base(builder)
-        {
-            PreCancellation += OnPreCancellation;
-        }
+        protected ApplicationProcessModule(IStageBuilder builder) 
+            : base(builder) { }
 
         public virtual string ApplicationPath { get; init; }
         public virtual string Arguments { get; init; }
-
-        private readonly object _Lock = new object();
-        private int? ProcessID { get; set; }
-
-        private void OnPreCancellation(IModule module)
-        {
-            lock ((module as ApplicationProcessModule<TResult>)._Lock)
-            {
-                var id = (module as ApplicationProcessModule<TResult>).ProcessID;
-                if (id == null) return;
-                var process = Process.GetProcessById((int)id);
-                if (process != null)
-                    process.Kill();
-            }
-        }
 
         private ProcessStartInfo GetProcessStartInfo() =>
             new ProcessStartInfo
@@ -44,7 +29,7 @@ namespace AutomationFramework.Modules
                 UseShellExecute = false
             };
 
-        protected override TResult DoWork()
+        protected override async Task<TResult> DoWork(CancellationToken token)
         {
             var result = Activator.CreateInstance<TResult>();
             if (string.IsNullOrWhiteSpace(ApplicationPath)) return result;
@@ -54,16 +39,12 @@ namespace AutomationFramework.Modules
             try
             {
                 using var process = Process.Start(psi);
-                lock (_Lock)
-                {
-                    ProcessID = process.Id;
-                    Log(LogLevels.Information, $"Process ID: {process.Id}");
-                }
-
+                Log(LogLevels.Information, $"Process ID: {process.Id}");
                 process.OutputDataReceived += Process_OutputDataReceived;
                 process.ErrorDataReceived += Process_ErrorDataReceived;
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
+                await process.WaitForExitAsync(token);
                 process.WaitForExit();
                 process.OutputDataReceived -= Process_OutputDataReceived;
                 process.ErrorDataReceived -= Process_ErrorDataReceived;
@@ -74,11 +55,6 @@ namespace AutomationFramework.Modules
                 result.ExceptionMessage = ex.Message;
                 result.Exception = ex.ToString();
                 throw;
-            }
-            finally
-            {
-                lock (_Lock)
-                    ProcessID = null;
             }
 
             return result;

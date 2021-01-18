@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
@@ -35,7 +37,7 @@ namespace AutomationFramework.Modules
             }
         }
 
-        protected override TResult DoWork()
+        protected override async Task<TResult> DoWork(CancellationToken token)
         {
             var result = Activator.CreateInstance<TResult>();
             if (!IsValid) throw new Exception("Invalid Module Setup");
@@ -44,12 +46,11 @@ namespace AutomationFramework.Modules
             List<string> matches = new();
             foreach (var file in allFiles)
             {
-                CheckForCancellation();
                 if (Regex.IsMatch(file.Name, RegexPattern))
                     matches.Add(file.FullName);
             }
             result.FilePaths = matches.ToArray();
-            return result;
+            return await Task.FromResult(result);
         }
     }
 }

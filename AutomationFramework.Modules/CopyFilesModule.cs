@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AutomationFramework.Modules
 {
@@ -37,7 +39,7 @@ namespace AutomationFramework.Modules
             }
         }
 
-        protected override TResult DoWork()
+        protected override async Task<TResult> DoWork(CancellationToken token)
         {
             var result = Activator.CreateInstance<TResult>();
             if (!IsValid) throw new Exception("Invalid Module Setup");
@@ -47,17 +49,12 @@ namespace AutomationFramework.Modules
             {
                 try
                 {
-                    CheckForCancellation();
                     if (!DestinationDirectory.Exists)
-                        GetRetryPolicy().Execute(() => DestinationDirectory.Create());
+                        DestinationDirectory.Create();
                     var fileDestination = Path.Combine(DestinationDirectory.FullName, file.Name);
 
-                    GetRetryPolicy().Execute(() =>
-                    {
-                        Log(LogLevels.Information, $"Copying file \"{file.FullName}\" to \"{fileDestination}\"");
-                        file.CopyTo(fileDestination, Overwrite);
-                        destinationPaths.Add(fileDestination);
-                    });
+                    await CopyFile(file, fileDestination, Overwrite, token);
+                    destinationPaths.Add(fileDestination);
                 }
                 catch
                 {
@@ -72,17 +69,28 @@ namespace AutomationFramework.Modules
             return result;
         }
 
-        private RetryPolicy GetRetryPolicy() =>
+        private async Task CopyFile(FileInfo file, string destinationPath, bool overwrite, CancellationToken token) =>
+            await GetAsyncRetryPolicy().ExecuteAsync(async () =>
+            {
+                Log(LogLevels.Information, $"Copying file \"{file.FullName}\" to \"{destinationPath}\"");
+                await file.CopyToAsync(destinationPath, overwrite, token);
+            });
+
+        private AsyncRetryPolicy GetAsyncRetryPolicy() =>
             Policy
             .Handle<IOException>()
-            .WaitAndRetry(
+            .WaitAndRetryAsync(
             RetryAttempts,
-            retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-            (e, t, i, c) =>
-            {
-                Log(LogLevels.Warning, e);
-                CheckForCancellation();
-                Log(LogLevels.Warning, $"{i} Retrying in {t.TotalSeconds} seconds");
-            });
+            (i, t) => GetRetryTimeSpan(i),
+            (e, t, i, c) => OnTryFailure(e, t, i));
+
+        private static TimeSpan GetRetryTimeSpan(int attempt) =>
+            TimeSpan.FromSeconds(Math.Pow(2, attempt));
+
+        private void OnTryFailure(Exception exception, TimeSpan nextAttemptIn, int attempt)
+        {
+            Log(LogLevels.Warning, exception);
+            Log(LogLevels.Warning, $"{attempt} Retrying in {nextAttemptIn.TotalSeconds} seconds");
+        }
     }
 }
