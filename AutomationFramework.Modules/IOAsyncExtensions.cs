@@ -11,11 +11,12 @@ namespace AutomationFramework.Modules
     {
         public static async Task CopyToAsync(this FileInfo file, string destination, bool overwrite, CancellationToken token)
         {
-            FileMode mode = FileMode.CreateNew;
-            if (overwrite) mode = FileMode.Create;
-            using FileStream SourceStream = File.Open(file.FullName, mode);
-            using FileStream DestinationStream = File.Create(destination);
-            await SourceStream.CopyToAsync(DestinationStream, token);
+            if (!overwrite && File.Exists(destination))
+                throw new IOException($"The file \"{destination}\" already exists.");
+
+            using FileStream sourceStream = File.Open(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using FileStream destinationStream = File.Create(destination);
+            await sourceStream.CopyToAsync(destinationStream, token);
         }
     }
 }

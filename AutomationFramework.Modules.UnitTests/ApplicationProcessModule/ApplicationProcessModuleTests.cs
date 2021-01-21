@@ -36,6 +36,15 @@ namespace AutomationFramework.Modules.UnitTests.ApplicationProcessModule
             .CreateSubdirectory("net5.0").FullName,
             "TestConsoleApp.exe"));
 
+        private static FileInfo GetTestDotNetFrameworkConsoleApp() =>
+            new FileInfo(Path.Combine(
+            GetProgramDirectory().
+            Parent.Parent.Parent.Parent
+            .CreateSubdirectory("TestDotNetFrameworkConsoleApp")
+            .CreateSubdirectory("bin")
+            .CreateSubdirectory("Debug").FullName,
+            "TestDotNetFrameworkConsoleApp.exe"));
+
         private static FileInfo Get7Zip() =>
             new FileInfo(@"C:\Program Files\7-Zip\7z.exe");
 
@@ -48,6 +57,18 @@ namespace AutomationFramework.Modules.UnitTests.ApplicationProcessModule
             TestProcessModule module = new(GetStageBuilder<TestProcessModule>())
             {
                 ApplicationPath = GetTestConsoleApp().FullName,
+                Arguments = "10",
+            };
+            module.OnLog += Module_OnLog;
+            await module.Run();
+        }
+
+        [Fact]
+        public async Task TestDotNetFrameworkConsoleApp()
+        {
+            TestProcessModule module = new(GetStageBuilder<TestProcessModule>())
+            {
+                ApplicationPath = GetTestDotNetFrameworkConsoleApp().FullName,
                 Arguments = "10",
             };
             module.OnLog += Module_OnLog;
@@ -75,11 +96,11 @@ namespace AutomationFramework.Modules.UnitTests.ApplicationProcessModule
             Log.Information(message.ToString());
 
         /// <summary>
-        /// To keep track of the WaitForExitAsync bug
+        /// To keep track of the WaitForExitAsync bug. Will sometimes fail because it's very timing dependant.
         /// </summary>
         /// <returns>Task</returns>
-        [Fact]
-        public async Task Repro_WaitForExitAsync()
+        /*[Fact]
+        public async Task WaitForExitAsync()
         {
             var logs = new List<string>();
             var psi = new ProcessStartInfo("cmd", "/C echo test")
@@ -104,6 +125,6 @@ namespace AutomationFramework.Modules.UnitTests.ApplicationProcessModule
 
             process.WaitForExit();
             Assert.Equal(new[] { "test" }, logs); // ok because WaitForExit waits for redirected streams
-        }
+        }*/
     }
 }
