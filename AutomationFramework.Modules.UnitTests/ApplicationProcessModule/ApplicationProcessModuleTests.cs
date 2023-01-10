@@ -33,7 +33,7 @@ namespace AutomationFramework.Modules.UnitTests.ApplicationProcessModule
             .CreateSubdirectory("TestConsoleApp")
             .CreateSubdirectory("bin")
             .CreateSubdirectory("Debug")
-            .CreateSubdirectory("net5.0").FullName,
+            .CreateSubdirectory("net6.0").FullName,
             "TestConsoleApp.exe"));
 
         private static FileInfo GetTestDotNetFrameworkConsoleApp() =>
